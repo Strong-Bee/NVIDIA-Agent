@@ -1,0 +1,21 @@
+{
+  "name": "nvidia-agent",
+  "version": "1.0.0",
+  "description": "<h1 align=\"center\">NVIDIA Agent CLI</h1>",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Strong-Bee/NVIDIA-Agent.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "bugs": {
+    "url": "https://github.com/Strong-Bee/NVIDIA-Agent/issues"
+  },
+  "homepage": "https://github.com/Strong-Bee/NVIDIA-Agent#readme"
+}
