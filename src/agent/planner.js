@@ -17,17 +17,17 @@ export class Planner {
     ].join(" ");
 
     const userContent = context.text
-      ? `User request:\\n${query}\\n\\nRead-only workspace context (${context.files} files):\\n${context.text}`
+      ? `User request:\n${query}\n\nRead-only workspace context (${context.files} files):\n${context.text}`
       : query;
 
     const result = await chat([
       { role: "system", content: system },
       { role: "user", content: userContent },
     ]);
-    process.stdout.write(`\\n${result.content}\\n`);
+    process.stdout.write(`\n${result.content}\n`);
     if (result.usage) {
       const total = result.usage.total_tokens;
-      if (Number.isFinite(total)) process.stderr.write(`\\n[model: ${result.model} | tokens: ${total}]\\n`);
+      if (Number.isFinite(total)) process.stderr.write(`\n[model: ${result.model} | tokens: ${total}]\n`);
     }
     return result;
   }
