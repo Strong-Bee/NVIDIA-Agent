@@ -11,7 +11,7 @@ export class NvidiaApiError extends Error {
 export async function chat(messages, options = {}) {
   const config = getConfig();
   const errors = validateConfig(config);
-  if (errors.length) throw new NvidiaApiError(errors.join("\\n"));
+  if (errors.length) throw new NvidiaApiError(errors.join("\n"));
 
   const controller = new AbortController();
   const timeout = setTimeout(() => controller.abort(), options.timeoutMs ?? 120_000);
