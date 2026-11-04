@@ -19,7 +19,7 @@ Environment:
   NVIDIA_BASE_URL              Default: https://integrate.api.nvidia.com/v1
   NVIDIA_MODEL                 Default: meta/llama-3.3-70b-instruct
   NVIDIA_TEMPERATURE           Default: 0.2
-  NVIDIA_MAX_TOKENS             Default: 2048
+  NVIDIA_MAX_TOKENS            Default: 2048
   WORKSPACE_DIR                Folder project yang dianalisis secara read-only
 
 Catatan: versi ini menyediakan chat dan pembacaan konteks workspace. Eksekusi shell,
@@ -38,6 +38,7 @@ export async function runCLI(argv = process.argv.slice(2)) {
   }
   if (command === "config") {
     const config = getConfig();
+    const errors = validateConfig(config);
     console.log(JSON.stringify({
       apiKeyConfigured: Boolean(config.apiKey),
       baseUrl: config.baseUrl,
@@ -45,8 +46,8 @@ export async function runCLI(argv = process.argv.slice(2)) {
       temperature: config.temperature,
       maxTokens: config.maxTokens,
       workspaceDir: config.workspaceDir,
-      valid: validateConfig(config).length === 0,
-      errors: validateConfig(config),
+      valid: errors.length === 0,
+      errors,
     }, null, 2));
     return;
   }
@@ -61,5 +62,5 @@ export async function runCLI(argv = process.argv.slice(2)) {
     await new Planner().execute(query);
     return;
   }
-  throw new Error(`Perintah tidak dikenal: ${command}\\nJalankan nvidia-agent help untuk bantuan.`);
+  throw new Error(`Perintah tidak dikenal: ${command}\nJalankan nvidia-agent help untuk bantuan.`);
 }
