@@ -1,12 +1,18 @@
 import fs from "node:fs/promises";
 import path from "node:path";
 
-const SKIP_DIRS = new Set([".git", "node_modules", ".next", "dist", "build", "coverage", "vendor", "cache", "logs"]);
-const SKIP_FILES = new Set([".env", ".env.local", ".env.production", ".npmrc", ".pypirc", "id_rsa", "id_ed25519"]);
+const SKIP_DIRS = new Set([".git", "node_modules", ".next", "dist", "build", "coverage", "vendor", "cache", "logs", ".ssh"]);
+const SKIP_FILES = new Set([".env", ".env.local", ".env.production", ".npmrc", ".pypirc", "id_rsa", "id_ed25519", "credentials.json", "secrets.json", "service-account.json"]);
 const ALLOWED_EXTENSIONS = new Set([".md", ".mdx", ".js", ".jsx", ".ts", ".tsx", ".json", ".mjs", ".cjs", ".py", ".rs", ".go", ".php", ".css", ".html", ".yml", ".yaml", ".toml", ".txt"]);
 const MAX_FILE_BYTES = 24_000;
 const MAX_TOTAL_BYTES = 100_000;
 const MAX_FILES = 35;
+
+function redactSecrets(text) {
+  return text
+    .replace(/((?:api[_-]?key|client[_-]?secret|access[_-]?token|refresh[_-]?token|password|passwd|authorization)\s*[:=]\s*["']?)[^\s"',;}]+/gi, "$1[REDACTED]")
+    .replace(/\b(?:nvapi-[A-Za-z0-9_-]{12,}|sk-[A-Za-z0-9_-]{16,})\b/g, "[REDACTED]");
+}
 
 export async function collectWorkspaceContext(rootDir) {
   const root = path.resolve(rootDir);
@@ -28,7 +34,7 @@ export async function collectWorkspaceContext(rootDir) {
         if (!SKIP_DIRS.has(entry.name)) await walk(fullPath);
         continue;
       }
-      if (!entry.isFile() || SKIP_FILES.has(entry.name)) continue;
+      if (!entry.isFile() || SKIP_FILES.has(entry.name) || /\.(?:pem|key|p12|pfx)$/i.test(entry.name)) continue;
       const ext = path.extname(entry.name).toLowerCase();
       if (!ALLOWED_EXTENSIONS.has(ext) && entry.name !== "Dockerfile") continue;
       try {
@@ -37,7 +43,8 @@ export async function collectWorkspaceContext(rootDir) {
         const content = await fs.readFile(fullPath, "utf8");
         if (content.includes("\0")) continue;
         const relative = path.relative(root, fullPath).split(path.sep).join("/");
-        const block = `\\n--- ${relative} ---\\n${content.slice(0, MAX_FILE_BYTES)}\\n`;
+        const safeContent = redactSecrets(content.slice(0, MAX_FILE_BYTES));
+        const block = `\n--- ${relative} ---\n${safeContent}\n`;
         if (total + Buffer.byteLength(block) > MAX_TOTAL_BYTES) continue;
         chunks.push(block);
         total += Buffer.byteLength(block);
